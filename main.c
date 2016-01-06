@@ -12,7 +12,8 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
-#define NBFOURMI 20;
+#define NBFOURMI 20
+#define EVAPORATION 0.95
 
 struct timeval start_utime, stop_utime;
 
@@ -114,7 +115,7 @@ int readfile(data* dat, char* datafile)
 int main (int argc, char** argv)
 {
 	data dat;
-	int i; 
+	int i,j,k,l; 
 	readfile(&dat, argv[1]);
 
 	int** fourmis = (int **) malloc(sizeof(int*) * NBFOURMI);
@@ -122,6 +123,13 @@ int main (int argc, char** argv)
 	{
 		fourmis[i] = (int *) malloc(sizeof(int) * dat.nbvar);
 	}
+	
+	int[NBFOURMI] coutF;
+	for (i = 0; i < NBFOURMI; i++)
+	{
+		coutF[i] = 0;
+	}
+
 
 	double[dat.nbvar] prob0;
 	for (i = 0; i < dat.nbvar; i++)
@@ -136,6 +144,14 @@ int main (int argc, char** argv)
 	}
 
 	double valOpti = 0;
+	double random;
+
+	int[dat.nbvar] solOpti;
+	for (i = 0; i < dat.nbvar; i++)
+	{
+		solOpti[i] = 0;
+	}
+
 
 	int ITERMAX = atoi(argv[2]);
 	int iter = 1;
@@ -145,13 +161,95 @@ int main (int argc, char** argv)
 		{
 			for (i = 0; i < dat.nbvar; i++)
 			{
-				fourmis[j][i]
+				fourmis[j][i] = -1;
 			}
 
 			for (i = 0; i < dat.nbvar; i++)
 			{
-				
+				if (fourmis[j][i] == -1)
+				{
+					srand((unsigned int) time(0));
+					random = rand() % (prob0[i] + prob1[i]);
+					if (random < prob0[i])
+					{
+						fourmis[j][i] = 0;
+					}
+					else
+					{
+						fourmis[j][i] = 1;	
+						for (k = 0; k < dat.nbctr; k++)
+						{
+							if (dat.matrix[k][i] == 1)
+							{
+								for (l = i+1; l < dat.nbvar; l++)
+								{
+									if (dat.matrix[k][l] == 1 ) fourmis[j][l] = 0;
+								} // end for
+							} // end if
+						} // end for
+					} // end if
+ 				} // end if 
+			} // end for
+		} // end for
+		for (i = 0; i < dat.nbvar; i++)
+		{
+			prob0[i] *= EVAPORATION;
+			prob1[i] *= EVAPORATION;
+		}
+		for (i = 0; i < NBFOURMI; i++)
+		{
+			coutF[i] = cout(fourmis[i], &dat);
+		}
+		int min = coutF[0];
+		int max = coutF[0];
+		int pos = 0;
+		
+		for (i = 1; i < NBFOURMI; i++)
+		{
+			if(min >coutF[i])
+			{
+				min = coutF[i];
+			}
+			if ( max < coutF[i])
+			{
+				max = coutF[i];
+				pos = i;
 			}
 		}
-	}
+
+
+		if(max > valOpti)
+		{
+			valOpti = max;
+			for (i = 0; i < dat.nbvar; i++)
+			{
+				solOpti[i] = fourmis[pos][i];
+			}
+
+			
+		}
+
+		
+		if(min != max)
+		{	
+			for (i = 0; i < dat.nbvar; i++)
+			{
+				for (j = 0; j < NBFOURMI; j++)
+				{
+					if(fourmi[j][i] = 1)
+					{
+						prob1[i] += (coutF[j]-min) / (max - min);
+					}
+					else
+					{
+						prob0[i] += (coutF[j]-min) / (max - min);
+					}
+
+				}
+
+			}
+		}
+
+
+	}// end while
 }
