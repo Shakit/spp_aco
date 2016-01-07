@@ -150,13 +150,13 @@ int main (int argc, char** argv)
 	double prob0[dat.nbvar];
 	for (i = 0; i < dat.nbvar; i++)
 	{
-		prob0[i] = 0.8; 
+		prob0[i] = NBFOURMI; 
 	}
 
 	double prob1[dat.nbvar];
 	for (i = 0; i < dat.nbvar; i++)
 	{
-		prob1[i] = 0.8; 
+		prob1[i] = NBFOURMI; 
 	}
 
 	double valOpti = 0;
@@ -173,6 +173,7 @@ int main (int argc, char** argv)
 	int iter = 0;
 	while(iter < ITERMAX)
 	{
+	
 		for (j = 0; j < NBFOURMI; j++)
 		{
 			for (i = 0; i < dat.nbvar; i++)
@@ -184,13 +185,14 @@ int main (int argc, char** argv)
 			{
 				if (fourmis[j][i] == -1)
 				{
+					sleep(1);
 					srand((unsigned int) time(0));
-					random = (rand() % (NBFOURMI * ITERMAX)) / (double) (NBFOURMI * ITERMAX);
-					if (iter == ITERMAX -1 )sleep(1);
-					while( random >= (prob0[i] + prob1[i]) )
+					random = (rand() % (NBFOURMI * ITERMAX +1)) / (double) (NBFOURMI * ITERMAX + 1) * (prob0[i] + prob1[i]);
+					//if (iter == ITERMAX -1 )sleep(1);
+					/*while( random >= (prob0[i] + prob1[i]) )
 					{
 						random -= prob0[i] + prob1[i];
-					}
+						}*/
 					if (random < prob0[i])
 					{
 						fourmis[j][i] = 0;
