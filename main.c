@@ -12,8 +12,8 @@
 #include <sys/time.h>
 #include <sys/resource.h>
 
-#define NBFOURMI 20
-#define EVAPORATION 0.95
+#define NBFOURMI 5
+#define EVAPORATION 0.4
 
 struct timeval start_utime, stop_utime;
 
@@ -56,6 +56,22 @@ void display (const int* sol, const int size)
 	}
 	printf("\n");
 }
+
+void displayd (const double* sol, const int size)
+{
+	int i;
+	for (i = 0; i < size; i++)
+	{
+		printf("%f ", sol[i]);
+	}
+	printf("\n");
+}
+
+/* void antDisplay(int** fourmis) */
+/* { */
+/* 	for  */
+	
+/* } */
 
 double cout(int* sol, data* dat)
 {
@@ -124,29 +140,29 @@ int main (int argc, char** argv)
 		fourmis[i] = (int *) malloc(sizeof(int) * dat.nbvar);
 	}
 	
-	int[NBFOURMI] coutF;
+	double coutF[NBFOURMI];
 	for (i = 0; i < NBFOURMI; i++)
 	{
 		coutF[i] = 0;
 	}
 
 
-	double[dat.nbvar] prob0;
+	double prob0[dat.nbvar];
 	for (i = 0; i < dat.nbvar; i++)
 	{
-		prob0[i] = 1; 
+		prob0[i] = 0.8; 
 	}
 
-	double[dat.nbvar] prob1;
+	double prob1[dat.nbvar];
 	for (i = 0; i < dat.nbvar; i++)
 	{
-		prob1[i] = 1; 
+		prob1[i] = 0.8; 
 	}
 
 	double valOpti = 0;
 	double random;
 
-	int[dat.nbvar] solOpti;
+	int solOpti[dat.nbvar];
 	for (i = 0; i < dat.nbvar; i++)
 	{
 		solOpti[i] = 0;
@@ -154,7 +170,7 @@ int main (int argc, char** argv)
 
 
 	int ITERMAX = atoi(argv[2]);
-	int iter = 1;
+	int iter = 0;
 	while(iter < ITERMAX)
 	{
 		for (j = 0; j < NBFOURMI; j++)
@@ -169,7 +185,12 @@ int main (int argc, char** argv)
 				if (fourmis[j][i] == -1)
 				{
 					srand((unsigned int) time(0));
-					random = rand() % (prob0[i] + prob1[i]);
+					random = (rand() % (NBFOURMI * ITERMAX)) / (double) (NBFOURMI * ITERMAX);
+					if (iter == ITERMAX -1 )sleep(1);
+					while( random >= (prob0[i] + prob1[i]) )
+					{
+						random -= prob0[i] + prob1[i];
+					}
 					if (random < prob0[i])
 					{
 						fourmis[j][i] = 0;
@@ -200,8 +221,8 @@ int main (int argc, char** argv)
 		{
 			coutF[i] = cout(fourmis[i], &dat);
 		}
-		int min = coutF[0];
-		int max = coutF[0];
+		double min = coutF[0];
+		double max = coutF[0];
 		int pos = 0;
 		
 		for (i = 1; i < NBFOURMI; i++)
@@ -217,7 +238,9 @@ int main (int argc, char** argv)
 			}
 		}
 
-
+		displayd(coutF, NBFOURMI);
+		printf("-----------------------------\n");
+		
 		if(max > valOpti)
 		{
 			valOpti = max;
@@ -225,7 +248,7 @@ int main (int argc, char** argv)
 			{
 				solOpti[i] = fourmis[pos][i];
 			}
-
+			display(solOpti, dat.nbvar); 
 			
 		}
 
@@ -236,7 +259,7 @@ int main (int argc, char** argv)
 			{
 				for (j = 0; j < NBFOURMI; j++)
 				{
-					if(fourmi[j][i] = 1)
+					if(fourmis[j][i] = 1)
 					{
 						prob1[i] += (coutF[j]-min) / (max - min);
 					}
@@ -249,7 +272,7 @@ int main (int argc, char** argv)
 
 			}
 		}
-
-
+		iter++;
+		printf("\n%f\n",valOpti);
 	}// end while
 }
